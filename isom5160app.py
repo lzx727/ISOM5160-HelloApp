@@ -1,10 +1,18 @@
 import streamlit as st
 from transformers import pipeline
 
-# Load the text classification model pipeline
-classifier = pipeline("text-classification",
-                      model='distilbert/distilbert-base-uncased-finetuned-sst-2-english',
-                      return_all_scores=True)
+# Load the text classification model pipeline once and share it across all
+# sessions and reruns. Building it on every run let two sessions load the model
+# at the same time, which can leave its weights on the "meta" device
+# ("Cannot copy out of meta tensor; no data!").
+@st.cache_resource
+def load_classifier():
+    return pipeline("text-classification",
+                    model='distilbert/distilbert-base-uncased-finetuned-sst-2-english',
+                    return_all_scores=True)
+
+
+classifier = load_classifier()
 
 # Streamlit application title
 st.title("Text Classification for you")
